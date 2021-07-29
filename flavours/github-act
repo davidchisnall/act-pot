@@ -1,0 +1,3 @@
+copy-in -s github.conf -d /root/github-config
+set-attribute -A persistent -V NO
+set-attribute -A no-rc-script -V ON

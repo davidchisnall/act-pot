@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# PROVIDE: gh_actions
+# REQUIRE: NETWORKING LOGIN FILESYSTEM
+# BEFORE: securelevel
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+PATH=$PATH:/usr/local/bin
+name="gh_actions"
+desc="GitHub Actions"
+procname="gh_actions"
+rcvar=gh_actions_enable
+start_cmd="gh_actions_start"
+stop_cmd="gh_actions_stop"
+
+load_rc_config $name
+
+gh_actions_running=/var/run/github-runners
+
+gh_actions_start()
+{
+	local POT
+	touch /var/run/github-runners
+	for RUNNER_NAME in ${gh_actions_pots} ; do
+		export RUNNER_NAME
+		if pot info -qrp ${RUNNER_NAME} ; then
+			echo ${RUNNER_NAME} already running?
+		else
+			run-actions-runner.sh > /dev/null 2> /dev/null &
+		fi
+	done
+}
+
+gh_actions_stop()
+{
+	rm -f /var/run/github-runners
+	for RUNNER_NAME in ${gh_actions_pots} ; do
+		if pot info -qrp ${RUNNER_NAME} ; then
+			if [ -f /var/run/github-runners.${RUNNER_NAME} ]; then
+				xargs kill < /var/run/github-runners.${RUNNER_NAME}
+				sleep 1
+			fi
+		fi
+		pot stop -p ${RUNNER_NAME}
+		pot rollback -p ${RUNNER_NAME}
+	done
+}
+
+run_rc_command "$1"

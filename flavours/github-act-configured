@@ -1,0 +1,1 @@
+set-cmd -c '/root/ci.sh'
