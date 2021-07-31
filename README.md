@@ -19,7 +19,7 @@ When you are asked to select an operating system, select Linux.
 Ignore all of the commands that you are instructed to run except for the one that starts `./config`.
 Paste that command into a root terminal in the directory where you have cloned this repository.
 
-Two environment variables affect this command:
+Three environment variables affect this command:
 
  - `FREEBSD_VERSION` specifies the version of FreeBSD to use (e.g. 13.1).
    If not specified this is the version of your host system.
@@ -30,8 +30,10 @@ Two environment variables affect this command:
 
 This script will create a pot (container) that has a configured GitHub Actions runner inside.
 It will also create a snapshot of the pot.
-The name of the pot is the runner name with any dots replaced with underscores (pot names are not allowed to contain dots).
+The name of the pot is the runner name with any dots replaced with underscores (pot names are not allowed to contain dots), the script will output this on the last line of the output.
 The runner will have `freebsd` and `freebsd-{version}` labels, these can be used to select runners with the `runs-on` property in the YAML.
+
+The runner's configuration is exported from into `runners/{pot name}`, allowing the runner to be re-created without having to re-register it with GitHub.
 
 This pot can be exported and imported on another system using the [existing pot commands](https://pot.pizzamig.dev/Container/).
 
@@ -42,8 +44,24 @@ You can modify the pot to install dependencies such as compilers or other tools.
 If you do then you must snapshot the pot *after* installing dependencies.
 You can update the base-system image in the same way.
 
+To make orchestration easier, you should provide your dependencies as one or more [`pot` flavours](https://pot.pizzamig.dev/Images/#images-creation-automated-with-flavours).
+These can be injected into the pot by setting the `RUNNER_FLAVOURS` environment variable as outlined above.
+
 *IMPORTANT:* The script that runs the action runner reverts to the last snapshot after each action run.
 If you do not create a new snapshot then all of your changes will be discarded.
+
+Re-creating a runner
+-------------------
+
+The `recreate-runner.sh` script re-creates a runner.
+This inspects the same environment variables as the `config.sh` script, described above.
+This expects to find the `runners/{pot name}` directory containing the configuration.
+If you wish to change the name of the pot when re-creating the runner (for example, to include a version or date) then you must copy or rename this directory.
+
+Note that only one pot with any given name can exist on the system at a time and so you must either rename the pot or destroy the pot before recreating it.
+Note that you can create the pot on one system, export it, and then import it on your deployment system.
+
+If you have created your runners by providing flavours with all of the dependencies then this script allows you to generate a new version with all dependencies.
 
 Running the runners
 -------------------

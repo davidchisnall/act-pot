@@ -1,0 +1,4 @@
+copy-in -s github.conf -d /root/github-config
+mount-in ${RUNNER_CONFIG_DIRECTORY}
+set-attribute -A persistent -V NO
+set-attribute -A no-rc-script -V ON

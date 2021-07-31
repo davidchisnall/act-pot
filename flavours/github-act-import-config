@@ -1,0 +1,4 @@
+copy-in -s agent.json -d /root/runner/agent.json
+copy-in -s auth.json -d /root/runner/auth.json
+copy-in -s cred.pkcs1 -d /root/runner/cred.pkcs1
+copy-in -s settings.json -d /root/runner/settings.json

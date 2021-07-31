@@ -8,7 +8,10 @@ if [ ! -d ${FLAVOURS} ]; then
 fi
 echo Installing flavours to $(realpath ${FLAVOURS})
 install -m 644 flavours/github-act flavours/github-act-configured ${FLAVOURS}
+install flavours/github-act ${FLAVOURS}
 install flavours/github-act.sh ${FLAVOURS}
+install flavours/github-act-configure.sh ${FLAVOURS}
+install flavours/github-act-import-config ${FLAVOURS}
 install run-actions-runner.sh /usr/local/bin/
 install gh_actions /usr/local/etc/rc.d/
 
