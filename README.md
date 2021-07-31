@@ -25,6 +25,8 @@ Two environment variables affect this command:
    If not specified this is the version of your host system.
  - `RUNNER_NAME` specifies the name to give to this runner.
    If not specified then this is the {your hostname}-freebsd-{version number}.
+ - `RUNNER_FLAVOURS` specifies a space-separated list of flavours that will be applied to the pot.
+   This allows you to provide a set of additional tools that will be made available to runner actions.
 
 This script will create a pot (container) that has a configured GitHub Actions runner inside.
 It will also create a snapshot of the pot.
