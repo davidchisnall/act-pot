@@ -15,4 +15,13 @@ fi
 RUNNER_FLAVOURS="github-act-import-config ${RUNNER_FLAVOURS}"
 cd ${RUNNER_CONFIG_DIRECTORY}
 
+FINAL_POT_NAME=${POTNAME}
+POTNAME=${POTNAME}-tmp
+
+echo Creating temporary pot ${POTNAME}
+
 . ${SCRIPTDIR}/create-runner.sh
+
+echo Renaming to ${FINAL_POT_NAME}
+
+lockf -k /var/run/github-runners.${FINAL_POT_NAME}.lock ${SCRIPTDIR}/rename-runner.sh ${POTNAME} ${FINAL_POT_NAME}
