@@ -12,7 +12,6 @@ mkdir -p ${RUNNER_CONFIG_DIRECTORY}
 cd ${RUNNER_CONFIG_DIRECTORY}
 
 pot create -p ${POTNAME} -b ${FREEBSD_VERSION} -t single -f github-act ${EXTRA_FLAVOURS} -f github-act-configured
-pot snapshot -p ${POTNAME}
 
 echo
 echo Created pot:

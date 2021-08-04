@@ -5,7 +5,7 @@ Wrapper scripts to run GitHub actions in a jail on FreeBSD
 
 This repository provides some scripts to run CI driven from GitHub in a FreeBSD jail.
 It uses `pot` to manage the jails.
-The pot runs one action and then stops, the underlying ZFS filesystem is restored to a snapshot, and the pot restarts.
+The pot is cloned from an immutable ZFS filesystem, runs one action,  stops, the underlying ZFS filesystem is destroyed, and then the process repeats.
 This allows the actions to do whatever they need to as root in the jail (install software, whatever).
 *This is a work in progress, please file issues as you find them.*
 
@@ -29,39 +29,44 @@ Three environment variables affect this command:
    This allows you to provide a set of additional tools that will be made available to runner actions.
 
 This script will create a pot (container) that has a configured GitHub Actions runner inside.
-It will also create a snapshot of the pot.
 The name of the pot is the runner name with any dots replaced with underscores (pot names are not allowed to contain dots), the script will output this on the last line of the output.
 The runner will have `freebsd` and `freebsd-{version}` labels, these can be used to select runners with the `runs-on` property in the YAML.
 
 The runner's configuration is exported from into `runners/{pot name}`, allowing the runner to be re-created without having to re-register it with GitHub.
+This exported configuration includes all of the environment variables that the script used when setting them up.
 
 This pot can be exported and imported on another system using the [existing pot commands](https://pot.pizzamig.dev/Container/).
+This pot will not be run directly by the scripts, it is treated as an immutable prototype and cloned for each invocation.
 
 Installing dependencies
 -----------------------
 
 You can modify the pot to install dependencies such as compilers or other tools.
-If you do then you must snapshot the pot *after* installing dependencies.
 You can update the base-system image in the same way.
 
 To make orchestration easier, you should provide your dependencies as one or more [`pot` flavours](https://pot.pizzamig.dev/Images/#images-creation-automated-with-flavours).
 These can be injected into the pot by setting the `RUNNER_FLAVOURS` environment variable as outlined above.
 
-*IMPORTANT:* The script that runs the action runner reverts to the last snapshot after each action run.
-If you do not create a new snapshot then all of your changes will be discarded.
-
 Re-creating a runner
 -------------------
 
 The `recreate-runner.sh` script re-creates a runner.
-This inspects the same environment variables as the `config.sh` script, described above.
 This expects to find the `runners/{pot name}` directory containing the configuration.
+This will read the environment variables that were provided to `config.sh` from `runners/{pot name}/act-config.sh`.
+You can modify this to specify a newer FreeBSD base version (for example, moving from FreeBSD 12.2 to 12.3) or to change the set of flavours that are installed.
+Note that recreating the runner will *not* change the labels and so you may need to manually modify labels that refer to the version if you replace a runner with a newer version.
 If you wish to change the name of the pot when re-creating the runner (for example, to include a version or date) then you must copy or rename this directory.
 
 Note that only one pot with any given name can exist on the system at a time and so you must either rename the pot or destroy the pot before recreating it.
 Note that you can create the pot on one system, export it, and then import it on your deployment system.
 
 If you have created your runners by providing flavours with all of the dependencies then this script allows you to generate a new version with all dependencies.
+
+### Recreating all runners
+
+The `recreate-all-runners.sh` script will recreate all runners that you have created.
+This iterates over all of the configs in the `runners/` directory and so must be run from the same location as `config.sh`.
+This can be run from a cron job to make sure that all runners have picked up the security updates.
 
 Running the runners
 -------------------
