@@ -39,7 +39,7 @@ gh_actions_stop()
 			if [ -f /var/run/github-runners.${RUNNER_NAME} ]; then
 				# Kill the runner if it isn't in the middle of a job.  The
 				# script will then gracefully terminate.
-				echo 'pkill -INT github-act-runner' | pot term ${FINAL_POT_NAME}-ephemeral
+				echo 'pkill -INT github-act-runner' | pot term -p ${RUNNER_NAME}-ephemeral >/dev/null 2>/dev/null
 				# If force is specified, wait a second for the runner to exit
 				# and destroy it immediately if it doesn't.
 				if [ -n "${rc_force}" ]; then

@@ -23,3 +23,4 @@ while [ -f /var/run/github-runners ] ; do
 	pot start -p ${RUNNER_CLONE_NAME}
 	pot destroy -p ${RUNNER_CLONE_NAME}
 done
+rm /var/run/github-runners.${RUNNER_NAME}
