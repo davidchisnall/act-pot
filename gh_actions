@@ -10,10 +10,11 @@
 PATH=$PATH:/usr/local/bin
 name="gh_actions"
 desc="GitHub Actions"
-procname="gh_actions"
-rcvar=gh_actions_enable
-start_cmd="gh_actions_start"
-stop_cmd="gh_actions_stop"
+procname="${name}"
+rcvar=${name}_enable
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+status_cmd="${name}_status"
 
 load_rc_config $name
 
@@ -25,11 +26,7 @@ gh_actions_start()
 	touch /var/run/github-runners
 	for RUNNER_NAME in ${gh_actions_pots} ; do
 		export RUNNER_NAME
-		if pot info -qrp ${RUNNER_NAME} ; then
-			echo ${RUNNER_NAME} already running?
-		else
-			run-actions-runner.sh > /dev/null 2> /dev/null &
-		fi
+		run-actions-runner.sh > /dev/null 2> /dev/null &
 	done
 }
 
@@ -37,14 +34,56 @@ gh_actions_stop()
 {
 	rm -f /var/run/github-runners
 	for RUNNER_NAME in ${gh_actions_pots} ; do
-		if pot info -qrp ${RUNNER_NAME} ; then
+		pot info -qr -p ${RUNNER_NAME}-ephemeral > /dev/null 2>&1
+		if [ $? -eq 0 ] ; then
 			if [ -f /var/run/github-runners.${RUNNER_NAME} ]; then
-				xargs kill < /var/run/github-runners.${RUNNER_NAME}
-				sleep 1
+				# Kill the runner if it isn't in the middle of a job.  The
+				# script will then gracefully terminate.
+				echo 'pkill -INT github-act-runner' | pot term ${FINAL_POT_NAME}-ephemeral
+				# If force is specified, wait a second for the runner to exit
+				# and destroy it immediately if it doesn't.
+				if [ -n "${rc_force}" ]; then
+					sleep 1
+					# FIXME: This is racy.
+					if [ -f /var/run/github-runners.${RUNNER_NAME} ]; then
+						kill `cat /var/run/github-runners.${RUNNER_NAME}`
+					fi
+				fi
 			fi
 		fi
-		pot stop -p ${RUNNER_NAME}
-		pot rollback -p ${RUNNER_NAME}
+	done
+	# If this isn't a forced operation, wait
+	if [ -z "${rc_force}" ]; then
+		for RUNNER_NAME in ${gh_actions_pots} ; do
+			pot info -qr -p ${RUNNER_NAME}-ephemeral > /dev/null 2>&1
+			if [ $? -eq 0 ] ; then
+				COUNT=0
+				while [ -f /var/run/github-runners.${RUNNER_NAME} ]; do
+					sleep 1
+					COUNT=$(expr $COUNT + 1)
+					if [ $(expr $COUNT % 10) -eq 0 ] ; then
+						echo Waiting for ${RUNNER_NAME} to exit...
+					fi
+				done
+			fi
+		done
+	fi
+}
+
+gh_actions_status()
+{
+	STATUS=$([ ! -f /var/run/github-runners ] && echo not)
+	echo $desc $STATUS running
+	for RUNNER_NAME in ${gh_actions_pots} ; do
+		pot info -qr -p ${RUNNER_NAME}-ephemeral > /dev/null 2>&1
+		if [ $? -eq 0 ] ; then
+			echo -n ${RUNNER_NAME} pot running
+			if [ -f /var/run/github-runners.${RUNNER_NAME} ]; then
+				echo " managed by process $(cat /var/run/github-runners.${RUNNER_NAME})"
+			else
+				echo " but appears to be orphaned"
+			fi
+		fi
 	done
 }
 

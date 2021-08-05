@@ -25,3 +25,6 @@ echo Creating temporary pot ${POTNAME}
 echo Renaming to ${FINAL_POT_NAME}
 
 lockf -k /var/run/github-runners.${FINAL_POT_NAME}.lock ${SCRIPTDIR}/rename-runner.sh ${POTNAME} ${FINAL_POT_NAME}
+
+# Tell the pot to gracefully shut down if it is not running any jobs.
+echo 'pkill -INT github-act-runner' | pot term ${FINAL_POT_NAME}-ephemeral
