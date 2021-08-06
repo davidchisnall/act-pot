@@ -18,7 +18,7 @@ while [ -f /var/run/github-runners ] ; do
 	if [ "$(cat /var/run/github-runners.${RUNNER_NAME})" != $$ ] ; then
 		exit 0
 	fi
-	# Acquire a lock while cloning to prevent races against an update of the base image. 
+	# Acquire a lock while cloning to prevent races against an update of the base image.
 	lockf -k /var/run/github-runners.${RUNNER_NAME}.lock pot clone -F -P ${RUNNER_NAME} -p ${RUNNER_CLONE_NAME}
 	pot start -p ${RUNNER_CLONE_NAME}
 	pot destroy -p ${RUNNER_CLONE_NAME}

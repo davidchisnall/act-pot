@@ -93,7 +93,7 @@ name: Example
 on:
   # Triggers the workflow on push
   push:
-  
+
   # Triggers the workflow on pull-request
   pull_request:
 

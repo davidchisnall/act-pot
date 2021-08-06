@@ -11,7 +11,7 @@ if [ ! "${POT_MOUNT_BASE}" ] ; then
 	echo POT_MOUNT_BASE not set, using ${POT_MOUNT_BASE}
 fi
 # Set the pot name to use underscores in place of dots (the one character pot
-# names are apparently not allowed).  
+# names are apparently not allowed).
 # FIXME: We shouldn't be allowing anything that isn't allowed in a path
 # component here either.
 POTNAME=$(echo ${RUNNER_NAME} | sed 's/\./_/g')
